@@ -1,0 +1,3 @@
+Hello fron write stream!
+This is test message!
+date(unixtime): 1628531186779
