@@ -6,6 +6,7 @@ const stream = require('stream');
 /*
   Read Stream
 */
+/*
 const readStream = fs.createReadStream('src.txt')
 readStream
   // readable event listener の登録
@@ -19,7 +20,7 @@ readStream
   })
   // register end event listener
   .on('end', () => console.log('end'))
-
+*/
 
 // create self reading stream
 class HelloReadableStream extends stream.Readable {
@@ -42,6 +43,7 @@ class HelloReadableStream extends stream.Readable {
   }
 }
 
+/*
 const helloReadableStream = new HelloReadableStream()
 helloReadableStream
   .on('readable', () => {
@@ -52,14 +54,62 @@ helloReadableStream
     }
   })
   .on('end', () => console.log('end'))
-
+*/
 
 /*
   Write Stream
 */
+/*
 const fileWritreStream = fs.createWriteStream('dest.txt')
 fileWritreStream.write('Hello fron write stream!\n')
 fileWritreStream.write('This is test message!\n')
 fileWritreStream.write(`date(unixtime): ${Date.now()}`)
 fileWritreStream.end()
 fs.readFileSync('dest.txt', 'utf8')
+*/
+
+/*
+  Transform Stream
+*/
+class LineTransformStream extends stream.Transform {
+  // field keep data which is not streamed lower layer got from upper layer
+  remaining = ''
+  constructor(options) {
+    // to be anable passing the object to push() method
+    super({ readableObjectMode: true, ...options })
+  }
+
+  _transform(chunk, encoding, callback) {
+    console.log('_transform()')
+    console.log(`chunk: ${chunk}`)
+    const lines = (chunk + this.remaining).split(/\n/)
+    console.log(`lines: ${lines}`)
+    this.remaining = lines.pop()
+    console.log(`remaining: ${this.remaining}`)
+    for (const line of lines) {
+      this.push({ message: line, delay: line.length * 100 })
+    }
+    callback()
+  }
+
+  _flush(callback) {
+    console.log('_flush()')
+    this.push({
+      message: this.remaining,
+      delay: this.remaining.length * 100
+    })
+    callback()
+  }
+}
+
+const lineTransformStream = new LineTransformStream()
+lineTransformStream.on('readable', () => {
+  let chunk
+  while ((chunk = lineTransformStream.read()) !== null) {
+    console.log(chunk)
+  }
+})
+
+lineTransformStream.write('foo\nbar')
+lineTransformStream.write('baz')
+lineTransformStream.end() // streamに残っているデータを流し切る
