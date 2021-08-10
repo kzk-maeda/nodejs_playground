@@ -110,6 +110,15 @@ lineTransformStream.on('readable', () => {
   }
 })
 
-lineTransformStream.write('foo\nbar')
-lineTransformStream.write('baz')
-lineTransformStream.end() // streamに残っているデータを流し切る
+// lineTransformStream.write('foo\nbar')
+// lineTransformStream.write('baz')
+// lineTransformStream.end() // streamに残っているデータを流し切る
+
+
+/*
+  conbine stream via pipe()
+*/
+// ReadStreamに対してpipeを用いてWrite/TransformStreamを連結する
+new HelloReadableStream()
+  .pipe(new LineTransformStream())
+  .on('finish', () => console.log('Done'))
