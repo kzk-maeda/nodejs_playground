@@ -6,6 +6,7 @@ let todos = [
 ]
 
 const app = express()
+app.use(express.json())
 
 // get all todo lists
 app.get('/api/todos', (req, res) => {
@@ -15,6 +16,31 @@ app.get('/api/todos', (req, res) => {
   // filter todos when complete query parameter is sent
   const completed = req.query.completed === 'true'
   res.json(todos.filter(todo => todo.completed === completed))
+})
+
+let id = 2
+
+// create new item in todo list
+app.post('/api/todos', (req, res, next) => {
+  // console.log(req)
+  const { title } = req.body
+  if (typeof title !== 'string' || !title) {
+    // return status code 400 if title is not contained in request body
+    const err = new Error('title is required')
+    err.statusCode = 400
+    return next(err)
+  }
+  // create todo
+  const todo = {id: id += 1, title, completed: false}
+  todos.push(todo)
+  // return status code 201(created)
+  res.status(201).json(todo)
+})
+
+// Error handling Middleware
+app.use((err, req, res, next) => {
+  console.error(err)
+  res.status(err.statusCode || 500).json({ error: err.message })
 })
 
 app.listen(3000)
